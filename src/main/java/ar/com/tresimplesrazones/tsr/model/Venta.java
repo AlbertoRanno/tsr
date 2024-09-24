@@ -21,6 +21,7 @@ public class Venta {
     private LocalDate fechaDeVenta;
 
     @ManyToOne(targetEntity = Producto.class)
+    @JoinColumn(name = "producto_id", nullable = false) // Siempre tiene que estar el producto
     @JsonBackReference("producto-venta")
     private Producto producto;
 }

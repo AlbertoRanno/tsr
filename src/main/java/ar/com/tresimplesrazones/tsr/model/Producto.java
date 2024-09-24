@@ -19,9 +19,8 @@ public class Producto {
     private int precioCompra;
     @Column(name = "precio_venta")
     private int precioVenta;
+    @Column(name = "stock", nullable = true)
     private int stock;
-    
-    //Producto debería llevar el control de las cantidades compradas y vendidas a través de las relaciones con Compra y Venta
     
     //Un producto específico va a estar en muchas compras
     @OneToMany(targetEntity = Compra.class, fetch = FetchType.EAGER, mappedBy = "producto")

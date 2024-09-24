@@ -19,10 +19,10 @@ public class Compra {
     private int precioDeCompra;
     @Column(name = "fecha_de_compra", columnDefinition = "DATE")
     private LocalDate fechaDeCompra;
-    
+
     @ManyToOne(targetEntity = Producto.class)
+    @JoinColumn(name = "product_id", nullable = false) //Siempre tiene que estar el producto que se compró
     @JsonBackReference("producto-compra")
     private Producto producto;
-    
 
 }
