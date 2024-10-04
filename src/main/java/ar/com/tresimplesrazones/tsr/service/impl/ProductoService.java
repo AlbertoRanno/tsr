@@ -1,5 +1,6 @@
 package ar.com.tresimplesrazones.tsr.service.impl;
 
+import ar.com.tresimplesrazones.tsr.exceptions.ResourceNotFoundException;
 import ar.com.tresimplesrazones.tsr.model.Producto;
 import ar.com.tresimplesrazones.tsr.repository.IProductoRepository;
 import ar.com.tresimplesrazones.tsr.service.IProductoService;
@@ -37,7 +38,8 @@ public class ProductoService implements IProductoService {
             repo.save(producto);
             return true;
         } else {
-            return false;
+           // return false;
+           throw new ResourceNotFoundException("Exception - Producto no encontrado");
         }
     }
 
@@ -47,7 +49,8 @@ public class ProductoService implements IProductoService {
             repo.deleteById(id);
             return true;
         } else {
-            return false;
+           // return false;
+           throw new ResourceNotFoundException("Exception - Producto no encontrado");
         }
     }
 

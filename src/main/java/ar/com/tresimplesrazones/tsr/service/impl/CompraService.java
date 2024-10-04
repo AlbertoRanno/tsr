@@ -1,5 +1,6 @@
 package ar.com.tresimplesrazones.tsr.service.impl;
 
+import ar.com.tresimplesrazones.tsr.exceptions.ResourceNotFoundException;
 import ar.com.tresimplesrazones.tsr.model.Compra;
 import ar.com.tresimplesrazones.tsr.model.Producto;
 import ar.com.tresimplesrazones.tsr.repository.ICompraRepository;
@@ -43,12 +44,13 @@ public class CompraService implements ICompraService {
             Compra compraOrig = repoCompra.findById(Id).orElseThrow();
             int cantCompradaOrig = compraOrig.getCantidadComprada();
             Producto producto = repoProducto.findById(compra.getProducto().getId()).orElseThrow();
-            producto.setStock(producto.getStock() -cantCompradaOrig + compra.getCantidadComprada());
+            producto.setStock(producto.getStock() - cantCompradaOrig + compra.getCantidadComprada());
             repoCompra.save(compra);
             repoProducto.save(producto);
             return true;
         } else {
-            return false;
+            //return false;
+            throw new ResourceNotFoundException("Exception - Compra no encontrada");
         }
     }
 
@@ -59,12 +61,13 @@ public class CompraService implements ICompraService {
             Compra compraOrig = repoCompra.findById(Id).orElseThrow();
             int cantCompradaOrig = compraOrig.getCantidadComprada();
             Producto producto = repoProducto.findById(compraOrig.getProducto().getId()).orElseThrow();
-            producto.setStock(producto.getStock() -cantCompradaOrig);
+            producto.setStock(producto.getStock() - cantCompradaOrig);
             repoProducto.save(producto);
             repoCompra.deleteById(Id);
             return true;
         } else {
-            return false;
+            //return false;
+            throw new ResourceNotFoundException("Exception - Compra no encontrada");
         }
     }
 

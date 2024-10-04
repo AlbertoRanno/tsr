@@ -16,7 +16,7 @@ public class Compra {
     @Column(name = "cantidad_comprada")
     private int cantidadComprada;
     @Column(name = "precio_de_compra")
-    private int precioDeCompra;
+    private Long precioDeCompra;
     @Column(name = "fecha_de_compra", columnDefinition = "DATE")
     private LocalDate fechaDeCompra;
 

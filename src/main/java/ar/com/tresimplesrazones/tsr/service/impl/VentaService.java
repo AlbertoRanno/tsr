@@ -1,6 +1,7 @@
 package ar.com.tresimplesrazones.tsr.service.impl;
 
 import ar.com.tresimplesrazones.tsr.TsrApplication;
+import ar.com.tresimplesrazones.tsr.exceptions.ResourceNotFoundException;
 import ar.com.tresimplesrazones.tsr.model.Producto;
 import ar.com.tresimplesrazones.tsr.model.Venta;
 import ar.com.tresimplesrazones.tsr.repository.IProductoRepository;
@@ -39,7 +40,8 @@ public class VentaService implements IVentaService {
         if (producto.getStock() >= venta.getCantidadVendida()) {
             producto.setStock(producto.getStock() - venta.getCantidadVendida());
         } else {
-            LOG.warn("Stock insuficiente para realizar la venta");
+            //LOG.warn("Stock insuficiente para realizar la venta");
+            throw new ResourceNotFoundException("Stock insuficiente para realizar la venta");
         }                
         repoVenta.save(venta);
         repoProducto.save(producto);
@@ -58,7 +60,8 @@ public class VentaService implements IVentaService {
             repoProducto.save(producto);
             return true;
         } else {
-            return false;
+            //return false;
+            throw new ResourceNotFoundException("Exception - venta no encontrada");
         }
     }
 
@@ -74,7 +77,8 @@ public class VentaService implements IVentaService {
             repoVenta.deleteById(id);
             return true;
         } else {
-            return false;
+            //return false;
+            throw new ResourceNotFoundException("Exception - venta no encontrada");
         }
     }
 

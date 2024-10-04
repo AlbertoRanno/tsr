@@ -15,10 +15,6 @@ public class Producto {
     private Long id;
     @Column(name = "nombre", unique = true)
     private String nombre;
-    @Column(name = "precio_compra")
-    private int precioCompra;
-    @Column(name = "precio_venta")
-    private int precioVenta;
     @Column(name = "stock", nullable = true)
     private int stock;
     
