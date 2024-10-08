@@ -1,5 +1,6 @@
 package ar.com.tresimplesrazones.tsr.model;
 
+import ar.com.tresimplesrazones.tsr.enums.TipoProducto;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
@@ -17,6 +18,9 @@ public class Producto {
     private String nombre;
     @Column(name = "stock", nullable = true)
     private int stock;
+    @Enumerated(EnumType.STRING)//Esto permite que el nombre del enum se guarde en la base de datos
+    @Column(name = "tipo")
+    private TipoProducto tipo;
     
     //Un producto específico va a estar en muchas compras
     @OneToMany(targetEntity = Compra.class, fetch = FetchType.EAGER, mappedBy = "producto")

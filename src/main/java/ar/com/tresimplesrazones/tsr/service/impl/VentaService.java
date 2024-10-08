@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 //@Qualifier("VentaServiceImpl")
 public class VentaService implements IVentaService {
-    
+
     private static Logger LOG = LoggerFactory.getLogger(TsrApplication.class);
 
     @Autowired
@@ -42,7 +42,7 @@ public class VentaService implements IVentaService {
         } else {
             //LOG.warn("Stock insuficiente para realizar la venta");
             throw new ResourceNotFoundException("Stock insuficiente para realizar la venta");
-        }                
+        }
         repoVenta.save(venta);
         repoProducto.save(producto);
     }
@@ -55,10 +55,14 @@ public class VentaService implements IVentaService {
             Venta ventaOrig = repoVenta.findById(id).orElseThrow();
             int cantVendidaOrig = ventaOrig.getCantidadVendida();
             Producto producto = repoProducto.findById(venta.getProducto().getId()).orElseThrow();
-            producto.setStock(producto.getStock() + cantVendidaOrig - venta.getCantidadVendida());
-            repoVenta.save(venta);
-            repoProducto.save(producto);
-            return true;
+            if (venta.getCantidadVendida() <= producto.getStock()) {
+                producto.setStock(producto.getStock() + cantVendidaOrig - venta.getCantidadVendida());
+                repoVenta.save(venta);
+                repoProducto.save(producto);
+                return true;
+            } else {
+                throw new ResourceNotFoundException("Stock insuficiente para realizar la venta");
+            }
         } else {
             //return false;
             throw new ResourceNotFoundException("Exception - venta no encontrada");
