@@ -15,9 +15,14 @@ public class MainReporteController {
     @Autowired
     ReporteService reporteService;
 
-    @GetMapping("rentabilidad-total")
+    @GetMapping("/rentabilidad-total")
     public ResponseEntity<Long> obtenerRentabilidadTotal() {
         return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularRentabilidadTotal());
+    }
+
+    @GetMapping("/rentabilidad-cpv")
+    public ResponseEntity<Long> obtenerRentabilidadCPV() {
+        return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaTotalCPV());
     }
 
 }
