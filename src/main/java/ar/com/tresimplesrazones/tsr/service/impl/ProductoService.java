@@ -1,5 +1,6 @@
 package ar.com.tresimplesrazones.tsr.service.impl;
 
+import ar.com.tresimplesrazones.tsr.enums.TipoProducto;
 import ar.com.tresimplesrazones.tsr.exceptions.ResourceNotFoundException;
 import ar.com.tresimplesrazones.tsr.model.Producto;
 import ar.com.tresimplesrazones.tsr.repository.IProductoRepository;
@@ -52,6 +53,11 @@ public class ProductoService implements IProductoService {
            // return false;
            throw new ResourceNotFoundException("Exception - Producto no encontrado");
         }
+    }
+
+    @Override
+    public List<Producto> encontrarPorTipo(TipoProducto tipo) {
+        return repo.findAllByTipo(tipo);
     }
 
 }

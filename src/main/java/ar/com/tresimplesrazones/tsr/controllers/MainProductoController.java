@@ -1,6 +1,7 @@
 package ar.com.tresimplesrazones.tsr.controllers;
 
 import ar.com.tresimplesrazones.tsr.TsrApplication;
+import ar.com.tresimplesrazones.tsr.enums.TipoProducto;
 import ar.com.tresimplesrazones.tsr.model.Producto;
 import ar.com.tresimplesrazones.tsr.service.IProductoService;
 import java.util.List;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/tsr/producto")
 public class MainProductoController {
-    
+
     private static Logger LOG = LoggerFactory.getLogger(TsrApplication.class);
 
     @Autowired
@@ -43,6 +44,17 @@ public class MainProductoController {
             return ResponseEntity.status(HttpStatus.OK).body(producto);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró el producto");
+        }
+    }
+
+    @GetMapping("/prueba/{tipo}")
+    public ResponseEntity<?> encontrarPorTipo(@PathVariable("tipo") TipoProducto tipo) {
+        LOG.info("entrando en encontrarPorTipo");
+        List<Producto> productosDelMismoTipo = service.encontrarPorTipo(tipo);
+        if (productosDelMismoTipo != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(productosDelMismoTipo);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró ese tipo de producto");
         }
     }
 
