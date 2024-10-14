@@ -2,6 +2,7 @@ package ar.com.tresimplesrazones.tsr.controllers;
 
 import ar.com.tresimplesrazones.tsr.model.Venta;
 import ar.com.tresimplesrazones.tsr.service.IVentaService;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,6 +28,11 @@ public class MainVentaController {
     @GetMapping
     public ResponseEntity<List<Venta>> listarVentas() {
         return ResponseEntity.status(HttpStatus.OK).body(service.listarVentas());
+    }
+
+    @GetMapping("periodo/{fechaInicio}/{fechaFin}")
+    public ResponseEntity<List<Venta>> listarVentasDelPeriodo(@PathVariable LocalDate fechaInicio, @PathVariable LocalDate fechaFin) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.listarVentasDelPeriodo(fechaInicio, fechaFin));
     }
 
     @PostMapping

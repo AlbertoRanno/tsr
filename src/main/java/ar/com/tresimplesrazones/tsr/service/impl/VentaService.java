@@ -8,6 +8,7 @@ import ar.com.tresimplesrazones.tsr.repository.IProductoRepository;
 import ar.com.tresimplesrazones.tsr.repository.IVentaRepository;
 import ar.com.tresimplesrazones.tsr.service.IVentaService;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,12 @@ public class VentaService implements IVentaService {
             //return false;
             throw new ResourceNotFoundException("Exception - venta no encontrada");
         }
+    }
+
+    @Override
+    public List<Venta> listarVentasDelPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
+        List<Venta> ventasDelPeriodo = repoVenta.findAllByFechaDeVentaBetween(fechaInicio, fechaFin);
+        return ventasDelPeriodo;
     }
 
 }

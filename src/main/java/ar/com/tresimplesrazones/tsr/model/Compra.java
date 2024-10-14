@@ -19,6 +19,7 @@ public class Compra {
     private Long precioDeCompra;
     @Column(name = "fecha_de_compra", columnDefinition = "DATE")
     private LocalDate fechaDeCompra;
+    /* LocalDate es una clase en Java que representa una fecha sin hora. Formato: YYYY-MM-DD (año-mes-día)*/
 
     @ManyToOne(targetEntity = Producto.class)
     @JoinColumn(name = "product_id", nullable = false) //Siempre tiene que estar el producto que se compró
