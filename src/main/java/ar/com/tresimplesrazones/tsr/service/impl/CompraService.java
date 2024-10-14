@@ -7,6 +7,7 @@ import ar.com.tresimplesrazones.tsr.repository.ICompraRepository;
 import ar.com.tresimplesrazones.tsr.repository.IProductoRepository;
 import ar.com.tresimplesrazones.tsr.service.ICompraService;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,6 +70,12 @@ public class CompraService implements ICompraService {
             //return false;
             throw new ResourceNotFoundException("Exception - Compra no encontrada");
         }
+    }
+
+    @Override
+    public List<Compra> comprasEnPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
+        List <Compra> comprasDelPeriodo = repoCompra.findAllByFechaDeCompraBetween(fechaInicio, fechaFin);
+        return comprasDelPeriodo;
     }
 
 }
