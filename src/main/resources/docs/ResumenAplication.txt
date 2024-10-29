@@ -1,0 +1,24 @@
+Resumen General de la Aplicación
+ 
+ Esta aplicación en Spring Boot se utiliza para la gestión de inventarios, ventas, y compras de productos, permitiendo además el cálculo de ganancias y rentabilidad.
+ Aquí están sus principales componentes y funcionalidades:
+
+Modelo de Datos:
+Producto: Representa los productos en inventario, incluye nombre, tipo, y cantidad en stock.
+Compra y Venta: Registros de entradas (compras) y salidas (ventas) de productos, relacionándose con el inventario para actualizar el stock automáticamente.
+
+Controladores REST: Exponen endpoints para gestionar los productos, compras, ventas, y reportes de rentabilidad.
+CompraController y VentaController: Permiten la creación, modificación, y eliminación de compras/ventas, y listados por fecha.
+ReporteController: Calcula la rentabilidad total y específica, aplicando un método FIFO para los cálculos de ganancia (Costo de Productos Vendidos).
+ProductoController: Permite ingresar, modificar, buscar y eliminar, nuevos productos.
+
+Servicios:
+ProductoService, CompraService, VentaService: Lógica de negocio para cada entidad, aplicando actualizaciones al stock en cada operación.
+ReporteService: Calcula las ganancias usando el costo de productos vendidos (CPV) en el inventario, con métodos que permiten:
+Calcular Rentabilidad Total: Basada en todos los ingresos y costos de compras.
+Calcular Ganancia por Producto y Tipo usando CPV (FIFO): Analiza solo las compras de productos vendidos en cada venta.
+Rentabilidad por Período y Tipo de Producto: Filtra ganancias por tipo de producto y periodo específico, según las ventas registradas.
+
+Manejo Global de Excepciones:
+GlobalExceptionHandler: Intercepta y gestiona las excepciones lanzadas, devolviendo mensajes personalizados y evitando mostrar trazas de errores extensas en la consola.
+Este diseño permite una aplicación modular y escalable que facilita el seguimiento de inventarios y el análisis de rentabilidad detallado.

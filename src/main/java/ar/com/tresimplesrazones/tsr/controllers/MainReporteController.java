@@ -2,6 +2,7 @@ package ar.com.tresimplesrazones.tsr.controllers;
 
 import ar.com.tresimplesrazones.tsr.enums.TipoProducto;
 import ar.com.tresimplesrazones.tsr.service.impl.ReporteService;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,10 @@ public class MainReporteController {
     @GetMapping("/rentabilidad/{tipo}")
     public ResponseEntity<Long> obtenerRentabilidadPorTipo(@PathVariable("tipo") TipoProducto tipo) {
         return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaPorTipoProductoCPV(tipo));
+    }
+
+    @GetMapping("rentabilidad/{tipo}/{fechaInicio}/{fechaFin}")
+    public ResponseEntity<Long> obtenerRentabilidadPorTipoEnPeriodo(@PathVariable TipoProducto tipo, @PathVariable LocalDate fechaInicio, @PathVariable LocalDate fechaFin) {
+        return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaPorTipoProductoCPVEnPeriodo(tipo, fechaInicio, fechaFin));
     }
 }
