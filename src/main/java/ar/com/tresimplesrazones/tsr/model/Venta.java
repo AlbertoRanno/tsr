@@ -19,6 +19,9 @@ public class Venta {
     private Long precioDeVenta;
     @Column(name = "fecha_de_Venta", columnDefinition = "DATE")
     private LocalDate fechaDeVenta;
+    
+    @Column(name= "tipo_cambio", nullable = false)
+    private Double tipoCambio;
 
     @ManyToOne(targetEntity = Producto.class)
     @JoinColumn(name = "producto_id", nullable = false) // Siempre tiene que estar el producto

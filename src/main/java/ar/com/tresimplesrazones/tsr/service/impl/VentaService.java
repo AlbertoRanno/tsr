@@ -37,6 +37,11 @@ public class VentaService implements IVentaService {
     @Override
     public void cargarVenta(Venta venta) {
         LOG.info("entrando en cargarVenta");
+
+        if (venta.getTipoCambio() == null) {
+            throw new ResourceNotFoundException("Se debe ingresar el tipo de cambio al momento de realizar la venta");
+        }
+
         Producto producto = repoProducto.findById(venta.getProducto().getId()).orElseThrow();
         if (producto.getStock() >= venta.getCantidadVendida()) {
             producto.setStock(producto.getStock() - venta.getCantidadVendida());
@@ -53,6 +58,11 @@ public class VentaService implements IVentaService {
     public boolean modificarVenta(Long id, Venta venta) {
         if (repoVenta.existsById(id)) {
             venta.setId(id);
+
+            if (venta.getTipoCambio() == null) {
+                throw new ResourceNotFoundException("Se debe ingresar el tipo de cambio al momento de realizar la venta");
+            }
+
             Venta ventaOrig = repoVenta.findById(id).orElseThrow();
             int cantVendidaOrig = ventaOrig.getCantidadVendida();
             Producto producto = repoProducto.findById(venta.getProducto().getId()).orElseThrow();

@@ -31,6 +31,11 @@ public class CompraService implements ICompraService {
     @Transactional
     @Override
     public void cargarCompra(Compra compra) {
+        // El tipo de cambio vendrá dentro del objeto compra, me fijo que no se nulo para evitar futuros y posibles errores
+        if (compra.getTipoCambio() == null) {
+            throw new ResourceNotFoundException("Se debe ingresar el tipo de cambio al momento de realizar la compra");
+        }
+
         Producto producto = repoProducto.findById(compra.getProducto().getId()).orElseThrow();
         producto.setStock(producto.getStock() + compra.getCantidadComprada());
         repoCompra.save(compra);
@@ -42,6 +47,11 @@ public class CompraService implements ICompraService {
     public boolean modificarCompra(Long Id, Compra compra) {
         if (repoCompra.existsById(Id)) {
             compra.setId(Id);
+
+            if (compra.getTipoCambio() == null) {
+                throw new ResourceNotFoundException("Se debe ingresar el tipo de cambio al momento de realizar la compra");
+            }
+
             Compra compraOrig = repoCompra.findById(Id).orElseThrow();
             int cantCompradaOrig = compraOrig.getCantidadComprada();
             Producto producto = repoProducto.findById(compra.getProducto().getId()).orElseThrow();
@@ -74,7 +84,7 @@ public class CompraService implements ICompraService {
 
     @Override
     public List<Compra> comprasEnPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
-        List <Compra> comprasDelPeriodo = repoCompra.findAllByFechaDeCompraBetween(fechaInicio, fechaFin);
+        List<Compra> comprasDelPeriodo = repoCompra.findAllByFechaDeCompraBetween(fechaInicio, fechaFin);
         return comprasDelPeriodo;
     }
 
