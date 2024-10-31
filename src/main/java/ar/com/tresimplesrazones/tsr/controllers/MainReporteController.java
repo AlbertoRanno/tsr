@@ -22,19 +22,35 @@ public class MainReporteController {
     public ResponseEntity<Long> obtenerRentabilidadTotal() {
         return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularRentabilidadTotal());
     }
+    @GetMapping("/rentabilidad-total-usd")
+    public ResponseEntity<Double> obtenerRentabilidadTotalEnDolares() {
+        return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularRentabilidadTotalEnDolares());
+    }
 
     @GetMapping("/rentabilidad-cpv")
     public ResponseEntity<Long> obtenerRentabilidadCPV() {
         return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaTotalCPV());
+    }
+    @GetMapping("/rentabilidad-cpv-usd")
+    public ResponseEntity<Double> obtenerRentabilidadCPVEnDolares() {
+        return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaTotalCPVEnDolares());
     }
 
     @GetMapping("/rentabilidad/{tipo}")
     public ResponseEntity<Long> obtenerRentabilidadPorTipo(@PathVariable("tipo") TipoProducto tipo) {
         return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaPorTipoProductoCPV(tipo));
     }
+    @GetMapping("/rentabilidad-usd/{tipo}")
+    public ResponseEntity<Double> obtenerRentabilidadPorTipoEnDolares(@PathVariable("tipo") TipoProducto tipo) {
+        return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaPorTipoProductoCPVEnDolares(tipo));
+    }
 
     @GetMapping("rentabilidad/{tipo}/{fechaInicio}/{fechaFin}")
     public ResponseEntity<Long> obtenerRentabilidadPorTipoEnPeriodo(@PathVariable TipoProducto tipo, @PathVariable LocalDate fechaInicio, @PathVariable LocalDate fechaFin) {
         return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaPorTipoProductoCPVEnPeriodo(tipo, fechaInicio, fechaFin));
+    }
+    @GetMapping("rentabilidad-usd/{tipo}/{fechaInicio}/{fechaFin}")
+    public ResponseEntity<Double> obtenerRentabilidadPorTipoEnPeriodoEnDolares(@PathVariable TipoProducto tipo, @PathVariable LocalDate fechaInicio, @PathVariable LocalDate fechaFin) {
+        return ResponseEntity.status(HttpStatus.OK).body(reporteService.calcularGananciaPorTipoProductoCPVEnPeriodoEnDolares(tipo, fechaInicio, fechaFin));
     }
 }

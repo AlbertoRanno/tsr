@@ -60,6 +60,36 @@ public class ReporteService {
         return totalVentas - totalCompras;
     }
 
+    //Calculo ahora la rentabilidad en dólares usando el tipo de cambio de cada transacción
+    public Double calcularRentabilidadTotalEnDolares() {
+        // A la suma de todos los importes de ventas realizadas, se le resta la suma de todos los importes de compras (considerando productos en stock y vendidos).
+        List<Venta> ventas = ventaRepo.findAll();
+        List<Compra> compras = compraRepo.findAll();
+
+        Double totalVentasUSD = 0.0;
+        Double totalComprasUSD = 0.0;
+
+        //Recorro todas las ventas y voy calculando el ingreso por cada una de ellas
+        for (Venta venta : ventas) {
+            //Calculo el total en USD ingresado POR venta (Precio * Cantidad / Tipo de cambio)
+            Double ingresoVentaUSD = venta.getPrecioDeVenta() * venta.getCantidadVendida() / venta.getTipoCambio();
+            //Voy actualizando el total
+            totalVentasUSD += ingresoVentaUSD;
+            LOG.info("Venta en dólares: Fecha: " + venta.getFechaDeVenta() + ", Ingreso USD: " + ingresoVentaUSD);
+        }
+
+        //Recorro todas las compras y voy calculando el costo por cada una de ellas
+        for (Compra compra : compras) {
+            Double costoCompraUSD = (compra.getPrecioDeCompra() * compra.getCantidadComprada() / compra.getTipoCambio());
+            totalComprasUSD += costoCompraUSD;
+            LOG.info("Compra en dólares: Fecha: " + compra.getFechaDeCompra() + ", Costo USD: " + costoCompraUSD);
+        }
+        LOG.info("Total de ventas en dólares: " + totalVentasUSD);
+        LOG.info("Total de compras en dólares: " + totalComprasUSD);
+
+        return totalVentasUSD - totalComprasUSD;
+    }
+
     /*Voy a aplicar, para el cálculo de la rentabilidad, el método de "Costo de Productos Vendidos" (CPV).
     De modo que se calculen las ganancias únicamente en base al costo de los productos que efectivamente fueron vendidos, ignorando los que aún están en stock.
     Esto me parece que da un margen de ganancia más real.  
@@ -140,7 +170,7 @@ public class ReporteService {
         Del producto, obtengo las compras del mismo (producto. getCompras)
         Las guardo en un ArrayList y las ordeno por fecha
         Por cada compra, me voy fijando la cantidad que se vendió. Partiendo de la 1er compra.
-        Y el en base a lo que pagó cada producto voy actualizando el costo total de esa venta.
+        Y en base a lo que pagó cada producto voy actualizando el costo total de esa venta.
         Hasta cubrir exacto la cantidad que se vendió (primero las compradas a precio más viejo)
         Una vez llegado a eso, se ejecuta el break del bucle de compras.
         Se calcula el dinero recibido por la venta que estaba recorriendo el bucle externo,
@@ -149,20 +179,79 @@ public class ReporteService {
         considerando todas las ventas, y las compras SOLO de lo vendido hasta el momento (A diferencia del método anterior) */
     }
 
+    public Double calcularGananciaTotalCPVEnDolares() {
+        List<Venta> ventas = ventaRepo.findAll();
+
+        Double gananciaTotalUSD = 0.0;
+
+        for (Venta venta : ventas) {
+            Producto producto = venta.getProducto();
+            int cantidadRestante = venta.getCantidadVendida();
+            Double costoTotalVentaUSD = 0.0;
+
+            List<Compra> comprasOrdenadas = new ArrayList<>(producto.getCompras());
+
+            Collections.sort(comprasOrdenadas, new Comparator<Compra>() {
+                @Override
+                public int compare(Compra c1, Compra c2) { // (*)
+                    return c1.getFechaDeCompra().compareTo(c2.getFechaDeCompra()); //Esto si se completa
+                }
+            });
+            LOG.info("\nProcesando la venta del producto: " + producto.getNombre() + ", Cantidad vendida: " + cantidadRestante);
+
+            for (Compra compra : comprasOrdenadas) {
+                if (cantidadRestante <= 0) {
+                    break;
+                }
+                int cantidadUtilizada = Math.min(compra.getCantidadComprada(), cantidadRestante);
+                //Para cada Compra, calculo el costo en dólares de las unidades usadas en la Venta actual
+                Double costoCompraUSD = (compra.getPrecioDeCompra() * cantidadUtilizada / compra.getTipoCambio());
+                LOG.info("Compra considerada - Fecha: " + compra.getFechaDeCompra() + ", Cantidad Usada: " + cantidadUtilizada
+                        + ", Precio Unitario: " + compra.getPrecioDeCompra() + ", Costo Acumulado: " + costoCompraUSD);
+                costoTotalVentaUSD += costoCompraUSD;
+
+                cantidadRestante -= cantidadUtilizada;
+            }
+
+            //Para cada Venta, calculo el ingreso en dólares
+            Double ingresoVentaUSD = (venta.getPrecioDeVenta() * venta.getCantidadVendida() / venta.getTipoCambio());
+
+            Double gananciaVentaUSD = ingresoVentaUSD - costoTotalVentaUSD;
+            //Sumo la ganancia de cada venta a gananciaTotalUSD, acumulando el total de todas las ventas en dólares.
+            gananciaTotalUSD += gananciaVentaUSD;
+
+            LOG.info("Venta procesada - Ingreso en USD: " + ingresoVentaUSD + ", Costo total en USD: " + costoTotalVentaUSD
+                    + ", Ganancia en USD: " + gananciaVentaUSD);
+        }
+
+        LOG.info("Ganancia total CPV en dólares: " + gananciaTotalUSD);
+        return gananciaTotalUSD;
+    }
+
     public Long calcularGananciaPorTipoProductoCPV(TipoProducto tipo) {
         //Simil al método anterior, pero quiero saber las ganancias por un determinado tipo: SAHUMERIO,TE,JUGUETE
+
         List<Producto> productosDeEsteTipo = productoRepo.findAllByTipo(tipo); //Todos los productos del tipo que vino en la url
+        LOG.info("Productos del tipo " + tipo + ": ");
+        productosDeEsteTipo.forEach(producto -> LOG.info("Producto encontrado - ID: " + producto.getId() + ", Nombre: " + producto.getNombre()));
 
-        List<Venta> ventas = ventaRepo.findAll(); // No quiero todas las ventas, solo las relacionadas (debajo) pero para filtrarlas, recorro todas en el bucle
+        // Obtengo todas las ventas sin filtrar
+        List<Venta> ventas = ventaRepo.findAll();
+        LOG.info("Todas las ventas registradas:");
+        ventas.forEach(venta -> LOG.info("Venta encontrada - ID: " + venta.getId() + ", Producto ID: " + venta.getProducto().getId()
+                + ", Fecha de Venta: " + venta.getFechaDeVenta()));
+
+        // Filtro las ventas para incluir solo las que pertenecen a productos del tipo solicitado
         List<Venta> ventasDeProdDeEsteTipo = new ArrayList<>();
-
-        Long gananciaTotal = 0L;
-
         for (Venta venta : ventas) {
             if (productosDeEsteTipo.contains(venta.getProducto())) {
                 ventasDeProdDeEsteTipo.add(venta);
+                LOG.info("Venta agregada a ventas de productos de tipo " + tipo + " - Venta ID: " + venta.getId()
+                        + ", Producto ID: " + venta.getProducto().getId());
             }
         }
+        Long gananciaTotal = 0L;
+
         for (Venta venta : ventasDeProdDeEsteTipo) {
             Producto producto = venta.getProducto();
             int cantidadRestante = venta.getCantidadVendida();
@@ -205,6 +294,73 @@ public class ReporteService {
         return gananciaTotal;
     }
 
+    public Double calcularGananciaPorTipoProductoCPVEnDolares(TipoProducto tipo) {
+        //Simil al anterior, pero filtro primero que las ventas consideradas sean del mismo tipo de productos.
+        List<Producto> productosDeEsteTipo = productoRepo.findAllByTipo(tipo); //Todos los productos del tipo que vino en la url
+        LOG.info("Productos del tipo " + tipo + ": ");
+        productosDeEsteTipo.forEach(producto -> LOG.info("Producto encontrado - ID: " + producto.getId() + ", Nombre: " + producto.getNombre()));
+
+        // Obtengo todas las ventas sin filtrar
+        List<Venta> ventas = ventaRepo.findAll();
+        LOG.info("Todas las ventas registradas:");
+        ventas.forEach(venta -> LOG.info("Venta encontrada - ID: " + venta.getId() + ", Producto ID: " + venta.getProducto().getId()
+                + ", Fecha de Venta: " + venta.getFechaDeVenta()));
+
+        // Filtro las ventas para incluir solo las que pertenecen a productos del tipo solicitado
+        List<Venta> ventasDeProdDeEsteTipo = new ArrayList<>();
+        for (Venta venta : ventas) {
+            if (productosDeEsteTipo.contains(venta.getProducto())) {
+                ventasDeProdDeEsteTipo.add(venta);
+                LOG.info("Venta agregada a ventas de productos de tipo " + tipo + " - Venta ID: " + venta.getId()
+                        + ", Producto ID: " + venta.getProducto().getId());
+            }
+        }
+
+        Double gananciaTotalUSD = 0.0;
+
+        for (Venta venta : ventasDeProdDeEsteTipo) {
+            Producto producto = venta.getProducto();
+            int cantidadRestante = venta.getCantidadVendida();
+            Double costoTotalVentaUSD = 0.0;
+
+            List<Compra> comprasOrdenadas = new ArrayList<>(producto.getCompras());
+
+            Collections.sort(comprasOrdenadas, new Comparator<Compra>() {
+                @Override
+                public int compare(Compra c1, Compra c2) { // (*)
+                    return c1.getFechaDeCompra().compareTo(c2.getFechaDeCompra()); //Esto si se completa
+                }
+            });
+            LOG.info("\nProcesando la venta del producto: " + producto.getNombre() + ", Cantidad vendida: " + cantidadRestante);
+
+            for (Compra compra : comprasOrdenadas) {
+                if (cantidadRestante <= 0) {
+                    break;
+                }
+                int cantidadUtilizada = Math.min(compra.getCantidadComprada(), cantidadRestante);
+                //Para cada Compra, calculo el costo en dólares de las unidades usadas en la Venta actual
+                Double costoCompraUSD = (compra.getPrecioDeCompra() * cantidadUtilizada / compra.getTipoCambio());
+                LOG.info("Compra considerada - Fecha: " + compra.getFechaDeCompra() + ", Cantidad Usada: " + cantidadUtilizada
+                        + ", Precio Unitario: " + compra.getPrecioDeCompra() + ", Costo Acumulado: " + costoCompraUSD);
+                costoTotalVentaUSD += costoCompraUSD;
+
+                cantidadRestante -= cantidadUtilizada;
+            }
+
+            //Para cada Venta, calculo el ingreso en dólares
+            Double ingresoVentaUSD = (venta.getPrecioDeVenta() * venta.getCantidadVendida() / venta.getTipoCambio());
+
+            Double gananciaVentaUSD = ingresoVentaUSD - costoTotalVentaUSD;
+            //Sumo la ganancia de cada venta a gananciaTotalUSD, acumulando el total de todas las ventas en dólares.
+            gananciaTotalUSD += gananciaVentaUSD;
+
+            LOG.info("Venta procesada - Ingreso en USD: " + ingresoVentaUSD + ", Costo total en USD: " + costoTotalVentaUSD
+                    + ", Ganancia en USD: " + gananciaVentaUSD);
+        }
+
+        LOG.info("Ganancia total CPV en dólares: " + gananciaTotalUSD);
+        return gananciaTotalUSD;
+    }
 //    public Long calcularGananciaPorTipoProductoCPVEnPeriodo(TipoProducto tipo, LocalDate fechaInicio, LocalDate fechaFin) {
 //        //Simil al método anterior, pero quiero saber las ganancias por un determinado tipo: SAHUMERIO,TE,JUGUETE en un periodo determinado
 //        List<Producto> productosDeEsteTipo = productoRepo.findAllByTipo(tipo); //Todos los productos del tipo que vino en la url
@@ -279,6 +435,7 @@ public class ReporteService {
 //        LOG.info("Ganancia Total CPV: " + gananciaTotal);
 //        return gananciaTotal;
 //    }
+
     /* Este metodo no corrige el hecho de que si yo quiero saber las ganancias en el periodo que va de A a B, el costo de los productos vendidos allí,
     se calcularán como si fueran los primeros productos que compré.... despreciando, la MUY POSIBLE REALIDAD, de que los productos que yo compré al inicio de todo,
     con sus costos (más bajos que el resto), todos, o en parte, ya los he vendido en un periodo previo a 'A', que está fuera de esta consulta, pero creo que,
@@ -481,4 +638,106 @@ public class ReporteService {
     -Ajustar el inventario al inicio del periodo restando las unidades ya vendidas.
     -Aplicar el cálculo del costo usando este inventario ajustado y el criterio FIFO dentro del periodo de consulta.
     -Este enfoque garantiza que solo se utilicen las unidades realmente disponibles en cada venta del periodo y evita contar productos que ya fueron usados en ventas previas.*/
+    public Double calcularGananciaPorTipoProductoCPVEnPeriodoEnDolares(TipoProducto tipo, LocalDate fechaInicio, LocalDate fechaFin) {
+        LOG.info("Calculando ganancia en USD para tipo de producto: " + tipo + " entre las fechas: " + fechaInicio + " y " + fechaFin);
+
+        List<Producto> productosDeEsteTipo = productoRepo.findAllByTipo(tipo);
+
+        List<Venta> ventas = ventaRepo.findAllByFechaDeVentaBetween(fechaInicio, fechaFin); // Ventas en el periodo 'A' a 'B'
+        List<Venta> ventasAnteriores = ventaRepo.findAllByFechaDeVentaBetween(LocalDate.MIN, fechaInicio.minusDays(1)); // Ventas previas a 'A'
+
+        Double gananciaTotalUSD = 0.0;
+
+        for (Producto producto : productosDeEsteTipo) {
+            LOG.info("Procesando producto: " + producto.getNombre());
+
+            List<Compra> comprasOrdenadas = new ArrayList<>(producto.getCompras()); // Todas las compras de este producto
+            Collections.sort(comprasOrdenadas, Comparator.comparing(Compra::getFechaDeCompra)); // Ordenadas por fecha
+
+            // Descuento de inventario por ventas anteriores
+            for (Venta ventaAnterior : ventasAnteriores) {
+                if (!ventaAnterior.getProducto().equals(producto)) {
+                    continue;
+                }
+
+                LOG.info("Descontando inventario usado en venta anterior a periodo. Venta anterior: " + ventaAnterior.getFechaDeVenta()
+                        + ", Cantidad vendida: " + ventaAnterior.getCantidadVendida());
+
+                int cantidadRestante = ventaAnterior.getCantidadVendida();
+                for (Compra compra : comprasOrdenadas) {
+                    if (cantidadRestante <= 0) {
+                        break;
+                    }
+
+                    int cantidadUtilizada = Math.min(compra.getCantidadComprada(), cantidadRestante);
+                    compra.setCantidadComprada(compra.getCantidadComprada() - cantidadUtilizada);
+                    cantidadRestante -= cantidadUtilizada;
+                }
+            }
+
+            // Calculo de la ganancia en dólares para las ventas en el periodo 'A' a 'B'
+            for (Venta venta : ventas) {
+                if (!venta.getProducto().equals(producto)) {
+                    continue;
+                }
+
+                LOG.info("Calculando ganancia de venta en periodo en USD. Fecha de venta: " + venta.getFechaDeVenta()
+                        + ", Cantidad vendida: " + venta.getCantidadVendida());
+
+                int cantidadRestante = venta.getCantidadVendida();
+                Double costoTotalVentaUSD = 0.0;
+
+                // Ingreso de la venta convertido a USD
+                Double ingresoVentaUSD = (venta.getPrecioDeVenta() * venta.getCantidadVendida()) / venta.getTipoCambio();
+
+                for (Compra compra : comprasOrdenadas) {
+                    if (cantidadRestante <= 0) {
+                        break;
+                    }
+
+                    int cantidadUtilizada = Math.min(compra.getCantidadComprada(), cantidadRestante);
+
+                    // Costo en dólares de cada cantidad usada en la venta
+                    Double costoCompraUSD = (compra.getPrecioDeCompra() * cantidadUtilizada) / compra.getTipoCambio();
+                    costoTotalVentaUSD += costoCompraUSD;
+
+                    compra.setCantidadComprada(compra.getCantidadComprada() - cantidadUtilizada);
+                    cantidadRestante -= cantidadUtilizada;
+
+                    LOG.info("Costo acumulado en USD para esta venta: " + costoTotalVentaUSD
+                            + ", Cantidad restante en compra después de uso: " + compra.getCantidadComprada()
+                            + ", Cantidad restante en venta: " + cantidadRestante);
+                }
+
+                // Calcula la ganancia en USD para esta venta
+                Double gananciaVentaUSD = ingresoVentaUSD - costoTotalVentaUSD;
+                gananciaTotalUSD += gananciaVentaUSD;
+
+                LOG.info("Ganancia de esta venta en USD: " + gananciaVentaUSD + ", Ingreso total venta en USD: " + ingresoVentaUSD
+                        + ", Costo total venta en USD: " + costoTotalVentaUSD);
+            }
+        }
+
+        LOG.info("Ganancia Total CPV en periodo en USD: " + gananciaTotalUSD);
+        return gananciaTotalUSD;
+
+        /* Estructura de los Bucles en el Método
+        Primer Bucle (for (Producto producto : productosDeEsteTipo)):
+
+        Este bucle recorre todos los productos del tipo especificado (por ejemplo, SAHUMERIO, TE, JUGUETE).
+        Cada iteración se centra en un producto específico de ese tipo.
+        Segundo Bucle (for (Venta venta : ventas)):
+
+        Este bucle recorre las ventas dentro del periodo especificado (ventas) y filtra aquellas relacionadas con el producto actual.
+        Gracias a la condición if (!venta.getProducto().equals(producto)) continue;, solo se procesan las ventas que corresponden al producto del tipo 
+        indicado en la iteración actual del primer bucle.
+        Esto significa que sí, las ventas que se procesan en cada iteración del producto son solo aquellas relacionadas con el producto actual.
+        Tercer Bucle (for (Compra compra : comprasOrdenadas)):
+
+        Este bucle recorre las compras ordenadas cronológicamente para el producto actual (del primer bucle).
+        Su función es aplicar el criterio FIFO para calcular el costo de las unidades vendidas, utilizando las compras que dieron origen al inventario de ese producto.
+        Dentro de este bucle, solo se procesan las compras necesarias para cubrir la cantidad vendida en la venta actual, calculando el costo de esa venta en base
+        a las unidades consumidas.*/
+    }
+
 }
