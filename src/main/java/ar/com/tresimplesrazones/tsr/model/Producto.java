@@ -1,6 +1,7 @@
 package ar.com.tresimplesrazones.tsr.model;
 
 import ar.com.tresimplesrazones.tsr.enums.TipoProducto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
@@ -24,12 +25,13 @@ public class Producto {
     
     //Un producto específico va a estar en muchas compras
     @OneToMany(targetEntity = Compra.class, fetch = FetchType.EAGER, mappedBy = "producto")
-    @JsonManagedReference("producto-compra")
+    @JsonIgnore //Tuve que quitar los JsonRefence, y agregar este aquí, para que desde el front se pueda acceder al producto relacionado con la venta.
     private List<Compra> compras;
     
     //Un producto específico va a estar en muchas ventas
     @OneToMany(targetEntity = Venta.class, fetch = FetchType.EAGER, mappedBy = "producto")
-    @JsonManagedReference("producto-venta")
+    //Esto carga todas las ventas de un producto cada vez que se carga el producto, lo cual puede ser útil si se necesita acceder a todas las ventas de un producto inmediatamente
+    @JsonIgnore //Tuve que quitar los JsonRefence, y agregar este aquí, para que desde el front se pueda acceder al producto relacionado con la venta.
     private List<Venta> ventas;
 
 }

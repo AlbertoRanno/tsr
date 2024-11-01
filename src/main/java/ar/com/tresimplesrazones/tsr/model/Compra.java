@@ -33,7 +33,7 @@ public class Compra {
 
     @ManyToOne(targetEntity = Producto.class)
     @JoinColumn(name = "product_id", nullable = false) //Siempre tiene que estar el producto que se compró
-    @JsonBackReference("producto-compra")
+    //Evito el fetch Eager y JsonRefence, y lo manejo solo con un JsonIgnore del lado del producto. Con esto se ve limpio en Swagger y se accede al IdProd en el Front
     private Producto producto;
 
 }

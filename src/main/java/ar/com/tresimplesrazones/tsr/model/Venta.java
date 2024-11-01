@@ -1,6 +1,7 @@
 package ar.com.tresimplesrazones.tsr.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.Data;
@@ -25,6 +26,6 @@ public class Venta {
 
     @ManyToOne(targetEntity = Producto.class)
     @JoinColumn(name = "producto_id", nullable = false) // Siempre tiene que estar el producto
-    @JsonBackReference("producto-venta")
     private Producto producto;
+    //Evito el fetch Eager y JsonRefence, y lo manejo solo con un JsonIgnore del lado del producto. Con esto se ve limpio en Swagger y se accede al IdProd en el Front
 }
