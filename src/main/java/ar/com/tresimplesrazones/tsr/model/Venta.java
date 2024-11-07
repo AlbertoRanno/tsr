@@ -23,6 +23,13 @@ public class Venta {
     
     @Column(name= "tipo_cambio", nullable = false)
     private Double tipoCambio;
+    
+    @Column(name= "info_adicional", nullable = true)
+    private String infoAdicional;
+    /*  Atributo Agregado de forma tardía, para no volver a crear la base de datos que ya tiene muchos valores:
+    USE tsr;  
+    ALTER TABLE venta ADD COLUMN info_adicional VARCHAR(255) NULL;
+    Esto crea la columna info_adicional en la tabla venta como un campo opcional (NULL), permitiendo texto de hasta 255 caracteres. */
 
     @ManyToOne(targetEntity = Producto.class)
     @JoinColumn(name = "producto_id", nullable = false) // Siempre tiene que estar el producto
